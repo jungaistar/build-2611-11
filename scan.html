@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스캔본 읽기 — 설비 비가동 집계 · 가동률 보고서</title>
+<meta name="description" content="손으로 쓴 생산작업일보 · 용접로봇 가동일보 스캔본(사진 · PDF)을 AI 비전으로 읽어 확인한 뒤 비가동 집계 입력 양식으로 보냅니다. 키가 없으면 같은 표를 손으로 넣습니다.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://build-2611-11.jobability.co.kr/scan.html">
+<meta name="robots" content="index,follow">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<nav class="topnav" aria-label="주요 메뉴">
+  <div class="topnav-inner">
+    <a class="topnav-brand" href="index.html">설비 비가동 집계 · 가동률 <small>build-2611-11 · 기획 정한결</small></a>
+    <ul class="topnav-links">
+      <li><a href="index.html">집계</a></li>
+      <li><a href="scan.html" class="active" aria-current="page">스캔본 읽기</a></li>
+      <li><a href="guide.html">사용법</a></li>
+      <li><a href="plan.html">기획서</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">생성형 AI 업무자동화 전문가과정 · 2차수 · 프로젝트 11 · v1.3</div>
+  <h1>작업일보 스캔본 읽기</h1>
+  <p>손으로 쓴 <b>생산작업일보(가공설비)</b>와 <b>자동용접 ROBOT 가동일보</b> 스캔본(사진 · PDF)을 올리면 AI 비전이 표를 읽어 옵니다.
+     읽은 값은 원본 옆에서 <b>사람이 확인 · 수정</b>한 뒤에만 집계 입력 양식으로 넘어갑니다. 키가 없으면 같은 표를 손으로 넣습니다. 스캔본은 AI 전송 외에는 이 브라우저 밖으로 나가지 않습니다.</p>
+</div></header>
+
+<main><div class="wrap">
+
+<section class="card" id="s-files">
+  <h2 style="margin-top:0">1. 스캔본을 올리세요</h2>
+  <p class="sub">사진(JPG · PNG · WEBP)이 가장 잘 읽힙니다. PDF 는 Anthropic 으로만 보낼 수 있습니다. 한 장에 일보 한 장이 들어가게 찍어 주세요.</p>
+  <label class="drop" id="sc-drop">
+    <input type="file" id="sc-file" accept="image/*,.pdf" multiple>
+    <b>스캔본을 끌어다 놓거나 눌러서 고르세요(여러 장 가능)</b>
+    <span>파일은 서버로 올라가지 않습니다 · AI 로 보낼 때만 그 서비스로 전송됩니다</span>
+  </label>
+  <div id="sc-thumbs" class="thumbs"></div>
+  <div class="btnrow">
+    <button class="btn" id="btn-sc-sample" type="button">예제 답으로 해보기(가짜 일보 2장)</button>
+    <button class="btn" id="btn-sc-manual" type="button">손으로 입력(가공)</button>
+    <button class="btn" id="btn-sc-manual-w" type="button">손으로 입력(용접)</button>
+    <button class="btn" id="btn-sc-clear" type="button">모두 비우기</button>
+  </div>
+</section>
+
+<section class="card" id="s-ai">
+  <h2 style="margin-top:0">2. AI 로 읽기 (선택)</h2>
+  <div class="ctrl">
+    <label>제공자 <select id="sc-provider"><option value="openai">OpenAI · gpt-4o-mini(사진)</option><option value="anthropic">Anthropic · claude-haiku-5-5(사진 · PDF)</option></select></label>
+    <label>API 키 <input type="password" id="sc-key" autocomplete="off" placeholder="sk-…"></label>
+    <label>양식 <select id="sc-form"><option value="">자동(AI 가 판단)</option><option value="mach">생산작업일보(가공)</option><option value="weld">용접 ROBOT 가동일보</option></select></label>
+    <button class="x" id="sc-forget" type="button">키 지우기</button>
+  </div>
+  <div class="warn">
+    <b>보내기 전에 확인하세요.</b> 올린 스캔본 이미지가 외부 AI 서비스로 전송됩니다. 작업자 이름 등 개인정보가 보이면 가린 뒤 올리거나, 사내 규정상 허용된 자료인지 먼저 확인해 주세요.
+    <label class="chk"><input type="checkbox" id="sc-agree"> 외부로 보내도 되는 자료임을 확인했습니다</label>
+  </div>
+  <div class="btnrow"><button class="btn primary" id="btn-sc-run" type="button" disabled>올린 스캔본 읽기</button></div>
+  <div id="sc-msg"></div>
+</section>
+
+<section class="card" id="s-pages" hidden>
+  <h2 style="margin-top:0">3. 읽은 값 확인 · 수정 <span class="tag" id="sc-count"></span></h2>
+  <p class="sub">원본과 대조하며 틀린 칸을 고치세요. 「확인할 것」이 남아 있어도 보낼 수는 있지만 집계에서 빠지거나 미분류로 셉니다.</p>
+  <div id="sc-pages"></div>
+</section>
+
+<section class="card" id="s-send" hidden>
+  <h2 style="margin-top:0">4. 집계로 보내기</h2>
+  <p class="sub">읽은 줄을 이 도구의 입력 양식(설비 · 설비군 · 작업자 · 날짜 · 근무 · 구분 · 코드 · 시작 · 종료 · 소요 · 내용)으로 바꿉니다. 양식의 범례 이름으로 집계 코드표를 다시 찾아 맞춥니다.</p>
+  <div id="sc-preview"></div>
+  <div class="btnrow">
+    <button class="btn primary" id="btn-sc-send" type="button">집계 화면으로 보내기</button>
+    <button class="btn green" id="btn-sc-xlsx" type="button">입력 양식 엑셀로 내려받기</button>
+  </div>
+  <div id="sc-send-msg"></div>
+</section>
+
+<section class="card">
+  <h2 style="margin-top:0">이번 판에서 하지 않는 것</h2>
+  <ul class="ul">
+    <li><b>키 없이 자동 인식</b> — 브라우저 안 OCR 은 손글씨 한글 표를 믿을 만큼 읽지 못해 넣지 않았습니다. 키가 없으면 「손으로 입력」으로 같은 표를 채웁니다.</li>
+    <li><b>확인 없이 집계</b> — AI 가 읽은 값은 반드시 사람이 본 뒤에 보냅니다. 읽기 확신이 낮거나 못 읽은 칸은 「확인할 것」에 올립니다.</li>
+    <li>스캔본 보관 — 이 화면을 닫으면 이미지는 사라집니다(읽은 값만 집계 화면으로 넘어갑니다).</li>
+  </ul>
+</section>
+
+</div></main>
+
+<footer><div class="wrap">생성형 AI 업무자동화 전문가과정 2차수 · 프로젝트 11 · 기획 정한결 · 예제 일보는 가짜이며 실제 사내 데이터가 아닙니다.</div></footer>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="js/downtime.js"></script>
+<script src="js/scanread.js"></script>
+<script src="js/scan.js"></script>
+</body>
+</html>

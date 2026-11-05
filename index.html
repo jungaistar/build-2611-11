@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>설비 비가동 집계 · 가동률 보고서 — 수기 일보에서 월간 설비 운영실적까지</title>
+<meta name="description" content="수기 작업일보를 엑셀 양식으로 옮겨 올리면 설비별 · 사유별 비가동 시간, 가동률, 비가동 사유 파레토, 일별 추이와 월간 설비 운영실적 보고서를 만듭니다. 파일은 브라우저 안에서만 처리합니다.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://build-2611-11.jobability.co.kr/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="생성형 AI 업무자동화 전문가과정 · 2차수">
+<meta property="og:url" content="https://build-2611-11.jobability.co.kr/">
+<meta property="og:title" content="설비 비가동 집계 · 가동률 보고서 — 생성형 AI 업무자동화 전문가과정 2차수">
+<meta property="og:description" content="수기 일보를 엑셀 양식으로 올리면 설비 · 사유별 비가동, 가동률, 파레토, 일별 추이와 월간 보고서가 나옵니다.">
+<meta property="og:image" content="https://build-2611-11.jobability.co.kr/og-index.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<nav class="topnav" aria-label="주요 메뉴">
+  <div class="topnav-inner">
+    <a class="topnav-brand" href="index.html">설비 비가동 집계 · 가동률 보고서 <small>build-2611-11 · 기획 정한결</small></a>
+    <ul class="topnav-links">
+      <li><a href="#s-data">자료</a></li>
+      <li><a href="#s-set">기준</a></li>
+      <li><a href="#s-dash">대시보드</a></li>
+      <li><a href="#s-report">보고서</a></li>
+      <li><a href="scan.html">스캔본 읽기</a></li>
+      <li><a href="guide.html">사용법</a></li>
+      <li><a href="plan.html">기획서</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">생성형 AI 업무자동화 전문가과정 · 2차수 · 프로젝트 11 · v1.3</div>
+  <h1>설비 비가동 집계 · 가동률 보고서</h1>
+  <p>수기 작업일보를 <b>엑셀 양식</b>으로 옮겨 올리면 설비별 · 사유별 <b>비가동 시간</b>과 <b>가동률</b>,
+     비가동 사유 <b>파레토</b>, 일별 추이와 <b>월간 설비 운영실적 보고서</b>를 만들어 줍니다.</p>
+</div></header>
+
+<main><div class="wrap">
+
+<section id="s-data" class="card">
+  <h2 style="margin-top:0">1. 자료를 올리세요</h2>
+  <p class="sub">비가동 일보(이 도구의 입력 양식) · 작업자별 작업일보 · 일일 집계 · 설비 가동률 시트 · 수리 이력을 읽습니다. 시트마다 형식을 알아서 판별하고, 틀리면 직접 고를 수 있습니다.</p>
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv" multiple>
+    <b>엑셀 파일을 끌어다 놓거나 눌러서 고르세요(여러 개 가능)</b>
+    <span>파일은 서버로 올라가지 않습니다 · 계산은 이 브라우저 안에서만 합니다</span>
+  </label>
+  <div class="btnrow">
+    <button class="btn primary" id="btn-sample">예제로 해보기</button>
+    <button class="btn" id="btn-template">빈 입력 양식 내려받기</button>
+    <button class="btn" id="btn-sample-file">채운 예제 양식 받기</button>
+    <button class="btn" id="btn-reset">자료 모두 비우기</button>
+    <a class="btn" href="scan.html" id="go-scan">손으로 쓴 일보 스캔본 읽기(v1.3)</a>
+  </div>
+  <p class="sub" style="margin-top:10px">예제 데이터는 실제 사내 데이터가 아닙니다 — 가짜 설비 6대의 10월 근무일 기록, 가짜 작업자 6명의 작업일보 5일, 가짜 수리 이력 5건입니다.
+    기록 실수 몇 건을 일부러 넣어 「확인할 것」이 어떻게 잡히는지 보여 줍니다.</p>
+  <ul class="filelist" id="files"></ul>
+  <div id="data-status"></div>
+</section>
+
+<section id="s-set" class="card">
+  <details id="set-box">
+    <summary><h2>2. 기준 설정 <small class="sub">설비군별 사유 코드 · 근무 형태 · 계획 시간 기준 — 이 브라우저에 저장됩니다</small></h2></summary>
+    <div class="setgrid">
+      <div>
+        <h3>비가동 사유 코드 <small class="sub">설비군마다 다릅니다 — 같은 글자라도 뜻이 다릅니다</small></h3>
+        <h4 class="gh">가공설비 (A~G)</h4>
+        <div class="tablewrap"><table id="codes">
+          <thead><tr><th>코드</th><th>이름</th><th>설명</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="btnrow tight"><button class="btn sm" id="btn-addcode">가공 코드 추가</button></div>
+        <h4 class="gh">용접설비 (A~H)</h4>
+        <div class="tablewrap"><table id="codes-weld">
+          <thead><tr><th>코드</th><th>이름</th><th>설명</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="btnrow tight">
+          <button class="btn sm" id="btn-addcode-weld">용접 코드 추가</button>
+          <button class="btn sm" id="btn-defcode">코드표 기본값으로</button>
+        </div>
+        <h3>설비군 <small class="sub">이름에 로봇 · 용접 · ABB · KOBE · 야스카와 또는 MAIN · BOOM · TRACK · SUB · CHASSIS · ARM · BUCKET · BLADE(N호기)가 있으면 용접설비, NC · MCT · 밀링 · 호리젠탈 · 머시닝이 있으면 가공설비. 둘 다 있으면 「확인 필요」 — 여기서 고르세요</small></h3>
+        <div class="btnrow tight">
+          <button class="btn sm" id="btn-planner-equip" title="가공 10대 · 용접 20대를 군과 함께 등록합니다. 이미 있는 이름은 그대로 둡니다">기획자 설비 목록(2026-11) 불러오기</button>
+          <button class="btn sm" id="btn-groups-clear">직접 고른 설비군 모두 지우기</button>
+        </div>
+        <p id="group-status" aria-live="polite"></p>
+        <div id="group-tbl"></div>
+      </div>
+      <div>
+        <h3>근무 형태</h3>
+        <div class="form">
+          <label>근무 시작 <input type="text" id="set-start" inputmode="numeric"></label>
+          <label>주간 종료 <input type="text" id="set-dayEnd" inputmode="numeric"></label>
+          <label>주간+야간 종료 <input type="text" id="set-nightEnd" inputmode="numeric"></label>
+          <label>쉬는 시간(오전 · 오후 합, 분) <input type="number" id="set-breakMin" min="0" step="5"></label>
+          <label class="wide">휴게 구간(인정시간에서 뺌) <input type="text" id="set-rests"></label>
+        </div>
+        <div id="shift-info"></div>
+        <h3>계산 기준</h3>
+        <div class="form">
+          <label class="wide">계획 시간 기준
+            <select id="set-basis">
+              <option value="recorded">기록된 계획 시간(없으면 근무 형태 기준)</option>
+              <option value="shift">근무 형태 기준(인정시간 − 휴식)</option>
+            </select></label>
+          <label>목표 가동률(%) <input type="number" id="set-target" min="0" max="100" step="1"></label>
+          <label class="chk"><input type="checkbox" id="set-separateRest"> 휴게와 겹친 시간은 뺀다</label>
+        </div>
+        <div class="btnrow tight"><button class="btn sm" id="btn-defset">근무 형태 기본값으로</button></div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section id="s-dash" class="card" hidden>
+  <h2 style="margin-top:0">3. 대시보드</h2>
+  <div class="ctrl">
+    <label>보기 <select id="kind"></select></label>
+    <label>기간 <select id="month"></select></label>
+    <span class="sub" id="basis-note"></span>
+  </div>
+  <div id="kpi"></div>
+  <div class="charts two">
+    <div><h3 id="bar-title">설비별 가동률</h3><div id="bar-chart" class="chart"></div></div>
+    <div><h3>비가동 사유 파레토</h3><div id="pareto" class="chart"></div></div>
+  </div>
+  <h3>일별 가동률 추이</h3>
+  <div id="trend" class="chart"></div>
+  <div class="charts two">
+    <div><h3>사유별 <small class="sub">큰 순 · 누적 %</small></h3><div class="tablewrap" id="pareto-tbl"></div></div>
+    <div><h3 id="by-title">설비별</h3><div class="tablewrap" id="by-tbl"></div></div>
+  </div>
+  <h3 id="matrix-title">설비 × 사유 비가동(시간)</h3>
+  <div class="tablewrap" id="matrix"></div>
+  <div id="month-wrap"><h3>월별</h3><div class="tablewrap" id="by-month"></div></div>
+  <h3>확인할 것 <small class="sub" id="issue-count"></small></h3>
+  <div id="issues"></div>
+  <details class="more">
+    <summary>일자별 상세 보기</summary>
+    <p class="sub"><span class="calc">계산</span> 가동을 적지 않아 계획 − 비가동으로 계산한 값 · <span class="calc">근무 형태</span> 계획 시간이 기록되지 않아 근무 형태로 계산한 값 ·
+      <span class="calc">추정</span> 한 칸에 사유가 여럿이라 시간을 똑같이 나눈 값입니다.</p>
+    <div class="tablewrap" id="days"></div>
+  </details>
+</section>
+
+<section id="s-report" class="card" hidden>
+  <h2 style="margin-top:0">4. 보고서 · 내보내기</h2>
+  <div class="ctrl"><label>부서 이름(선택) <input type="text" id="team" placeholder="예: 생산기술팀"></label></div>
+  <div id="summary" class="draftbox"></div>
+
+  <details class="ai" id="ai-box">
+    <summary>AI 로 요약 문장 다듬기 (선택)</summary>
+    <p class="sub">규칙으로 만든 요약을 보고서 문체로 다듬습니다. 숫자 · 날짜 · 설비 이름은 바꾸지 않도록 요청합니다.
+       키는 이 브라우저에만 저장됩니다. 보내기 전에 한 번 더 묻습니다. 키가 없어도 보고서는 그대로 만들어집니다.</p>
+    <div class="form">
+      <label>제공자
+        <select id="ai-provider">
+          <option value="openai">OpenAI (gpt-4o-mini)</option>
+          <option value="anthropic">Anthropic (claude-haiku-5-5)</option>
+        </select></label>
+      <label class="wide">API 키 <input type="password" id="ai-key" autocomplete="off" placeholder="sk-..."></label>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="ai-run">AI 로 다듬기</button>
+      <button class="btn" id="ai-forget">저장된 키 지우기</button>
+    </div>
+    <div id="ai-out"></div>
+  </details>
+
+  <div class="btnrow">
+    <button class="btn primary" id="btn-print">보고서 인쇄하기</button>
+    <button class="btn" id="btn-html">보고서 HTML 저장</button>
+    <button class="btn green" id="btn-export">엑셀로 내보내기</button>
+  </div>
+  <p class="sub" style="margin-top:10px">엑셀 시트: 요약 · 설비별 · 사유별 · 일별 · 월별 · 설비x사유 · 일자별상세 · 가동률양식(회사 가동률 시트 모양) · 확인할것 · 수리이력 · 기준</p>
+  <h3>보고서 미리보기</h3>
+  <iframe id="preview" title="보고서 미리보기"></iframe>
+  <iframe id="print-frame" title="인쇄용" hidden></iframe>
+</section>
+
+</div></main>
+
+<footer><div class="wrap">
+  생성형 AI 업무자동화 전문가과정 2차수 · 프로젝트 11 · 기획 정한결 ·
+  예제 데이터는 실제 사내 데이터가 아닙니다.
+</div></footer>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="js/downtime.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
